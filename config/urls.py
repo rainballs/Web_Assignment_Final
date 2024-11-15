@@ -6,7 +6,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('foodtracker.urls'))
+    path('', include('Web_FInal_Assignment_project.urls'))
 ]
 
 if settings.DEBUG:

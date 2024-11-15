@@ -1,21 +1,29 @@
 from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import IntegrityError
+from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.views import View
+from django.views.generic import ListView, DeleteView
+from django.views.generic.detail import DetailView
+from django.utils.decorators import method_decorator
 
-from .models import User, Food, FoodCategory, FoodLog, Image, Weight
 from .forms import FoodForm, ImageForm
+from .models import User, Food, FoodCategory, FoodLog, Image, Weight
 
 
 def index(request):
     '''
     The default route which lists all food items
     '''
-    return food_list_view(request)
+    view = FoodListView.as_view()
+    return view(request)
 
 
 def register(request):
@@ -67,7 +75,7 @@ def login_view(request):
                 'categories': FoodCategory.objects.all()
             })
     else:
-        return render(request, 'login.html',  {
+        return render(request, 'login.html', {
             'categories': FoodCategory.objects.all()
         })
 
@@ -77,58 +85,68 @@ def logout_view(request):
     return HttpResponseRedirect(reverse('index'))
 
 
-def food_list_view(request):
-    '''
-    It renders a page that displays all food items
-    Food items are paginated: 4 per page
-    '''
+class FoodListView(ListView):
+    model = Food
+    template_name = 'index.html'
+    context_object_name = 'foods'
+    paginate_by = 4
     foods = Food.objects.all()
 
-    for food in foods:
-        food.image = food.get_images.first()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        foods = Food.objects.all()
 
-    # Show 4 food items per page
-    page = request.GET.get('page', 1)
-    paginator = Paginator(foods, 4)
-    try:
-        pages = paginator.page(page)
-    except PageNotAnInteger:
-        pages = paginator.page(1)
-    except EmptyPage:
-        pages = paginator.page(paginator.num_pages)
+        # Attach the first image to each food object
+        for food in foods:
+            food.image = food.get_images.first()
 
-    return render(request, 'index.html', {
-        'categories': FoodCategory.objects.all(),
-        'foods': foods,
-        'pages': pages,
-        'title': 'Food List'
-    })
+        # Add custom context data
+        context['categories'] = FoodCategory.objects.all()
+        context['title'] = 'Food List'
 
+        # Manually handle pagination (if you want custom behavior)
+        paginator = Paginator(foods, self.paginate_by)
+        page = self.request.GET.get('page', 1)
+        try:
+            context['pages'] = paginator.page(page)
+        except PageNotAnInteger:
+            context['pages'] = paginator.page(1)
+        except EmptyPage:
+            context['pages'] = paginator.page(paginator.num_pages)
 
-def food_details_view(request, food_id):
-    '''
-    It renders a page that displays the details of a selected food item
-    '''
-    if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse('login'))
-
-    food = Food.objects.get(id=food_id)
-
-    return render(request, 'food.html', {
-        'categories': FoodCategory.objects.all(),
-        'food': food,
-        'images': food.get_images.all(),
-    })
+        return context
 
 
-@login_required
-def food_add_view(request):
-    '''
-    It allows the user to add a new food item
-    '''
-    ImageFormSet = forms.modelformset_factory(Image, form=ImageForm, extra=2)
+@method_decorator(login_required, name='dispatch')
+class FoodDetailView(DetailView):
+    model = Food
+    template_name = 'food.html'
+    context_object_name = 'food'
 
-    if request.method == 'POST':
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = FoodCategory.objects.all()
+        context['images'] = self.object.get_images.all()  # Assuming 'get_images' is a related manager
+        return context
+
+
+class FoodAddView(LoginRequiredMixin, View):
+    """
+    A view to handle adding a new food item and associated images.
+    """
+    template_name = 'food_add.html'
+
+    def get(self, request, *args, **kwargs):
+        ImageFormSet = modelformset_factory(Image, form=ImageForm, extra=2)
+        context = {
+            'categories': FoodCategory.objects.all(),
+            'food_form': FoodForm(),
+            'image_form': ImageFormSet(queryset=Image.objects.none()),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        ImageFormSet = modelformset_factory(Image, form=ImageForm, extra=2)
         food_form = FoodForm(request.POST, request.FILES)
         image_form = ImageFormSet(request.POST, request.FILES, queryset=Image.objects.none())
 
@@ -136,83 +154,75 @@ def food_add_view(request):
             new_food = food_form.save(commit=False)
             new_food.save()
 
-            for food_form in image_form.cleaned_data:
-                if food_form:
-                    image = food_form['image']
+            for image_data in image_form.cleaned_data:
+                if image_data:
+                    image = image_data.get('image')
+                    if image:
+                        new_image = Image(food=new_food, image=image)
+                        new_image.save()
 
-                    new_image = Image(food=new_food, image=image)
-                    new_image.save()
-
-            return render(request, 'food_add.html', {
+            return render(request, self.template_name, {
                 'categories': FoodCategory.objects.all(),
                 'food_form': FoodForm(),
                 'image_form': ImageFormSet(queryset=Image.objects.none()),
-                'success': True
+                'success': True,
             })
 
-        else:
-            return render(request, 'food_add.html', {
-                'categories': FoodCategory.objects.all(),
-                'food_form': FoodForm(),
-                'image_form': ImageFormSet(queryset=Image.objects.none()),
-            })
-
-    else:
-        return render(request, 'food_add.html', {
+        return render(request, self.template_name, {
             'categories': FoodCategory.objects.all(),
-            'food_form': FoodForm(),
-            'image_form': ImageFormSet(queryset=Image.objects.none()),
+            'food_form': food_form,
+            'image_form': image_form,
         })
 
 
-@login_required
-def food_log_view(request):
+class FoodLogView(View):
     '''
-    It allows the user to select food items and
-    add them to their food log
+    Allows the user to select food items and add them to their food log.
+    Handles both GET and POST requests.
     '''
-    if request.method == 'POST':
+
+    def get(self, request):
+        # Retrieve all food items and the food log of the logged-in user
         foods = Food.objects.all()
+        user_food_log = FoodLog.objects.filter(user=request.user)
 
-        # get the food item selected by the user
-        food = request.POST['food_consumed']
-        food_consumed = Food.objects.get(food_name=food)
+        # Render the food log page with the necessary context
+        return render(request, 'food_log.html', {
+            'categories': FoodCategory.objects.all(),
+            'foods': foods,
+            'user_food_log': user_food_log
+        })
 
-        # get the currently logged in user
-        user = request.user
+    def post(self, request):
+        # Retrieve the food item selected by the user
+        food_name = request.POST.get('food_consumed')
+        if food_name:
+            food_consumed = Food.objects.get(food_name=food_name)
 
-        # add selected food to the food log
-        food_log = FoodLog(user=user, food_consumed=food_consumed)
-        food_log.save()
+            # Create and save a new food log entry for the logged-in user
+            FoodLog.objects.create(user=request.user, food_consumed=food_consumed)
 
-    else:  # GET method
-        foods = Food.objects.all()
-
-    # get the food log of the logged in user
-    user_food_log = FoodLog.objects.filter(user=request.user)
-
-    return render(request, 'food_log.html', {
-        'categories': FoodCategory.objects.all(),
-        'foods': foods,
-        'user_food_log': user_food_log
-    })
-
-
-@login_required
-def food_log_delete(request, food_id):
-    '''
-    It allows the user to delete food items from their food log
-    '''
-    # get the food log of the logged in user
-    food_consumed = FoodLog.objects.filter(id=food_id)
-
-    if request.method == 'POST':
-        food_consumed.delete()
+        # Redirect to the same page after saving the food log entry
         return redirect('food_log')
 
-    return render(request, 'food_log_delete.html', {
-        'categories': FoodCategory.objects.all()
-    })
+
+class FoodLogDeleteView(LoginRequiredMixin, View):
+    '''
+    This view allows the user to delete food items from their food log.
+    '''
+
+    def get(self, request, food_id):
+        # Render the confirmation page with necessary context
+        return render(request, 'food_log_delete.html', {
+            'categories': FoodCategory.objects.all()
+        })
+
+    def post(self, request, food_id):
+        # Get the food log item and delete it
+        food_consumed = FoodLog.objects.filter(id=food_id)
+        if food_consumed.exists():
+            food_consumed.delete()
+        return redirect('food_log')
 
 
 @login_required
@@ -221,7 +231,6 @@ def weight_log_view(request):
     It allows the user to record their weight
     '''
     if request.method == 'POST':
-
         # get the values from the form
         weight = request.POST['weight']
         entry_date = request.POST['date']
