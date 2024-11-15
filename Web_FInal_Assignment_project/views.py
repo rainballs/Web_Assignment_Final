@@ -7,8 +7,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from .models import User, Food, FoodCategory, FoodLog, Image, Weight
 from .forms import FoodForm, ImageForm
+from .models import User, Food, FoodCategory, FoodLog, Image, Weight
 
 
 def index(request):
@@ -67,7 +67,7 @@ def login_view(request):
                 'categories': FoodCategory.objects.all()
             })
     else:
-        return render(request, 'login.html',  {
+        return render(request, 'login.html', {
             'categories': FoodCategory.objects.all()
         })
 
@@ -221,7 +221,6 @@ def weight_log_view(request):
     It allows the user to record their weight
     '''
     if request.method == 'POST':
-
         # get the values from the form
         weight = request.POST['weight']
         entry_date = request.POST['date']

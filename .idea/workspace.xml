@@ -4,15 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4123341a-95d4-499a-ae79-8db4d36d9dd0" name="Changes" comment="Added Templates">
-      <change afterPath="$PROJECT_DIR$/Web_FInal_Assignment_project/admin.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Web_FInal_Assignment_project/apps.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Web_FInal_Assignment_project/forms.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
+    <list default="true" id="4123341a-95d4-499a-ae79-8db4d36d9dd0" name="Changes" comment="Added configuration plus views models and forms">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Web_FInal_Assignment_project/asgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/asgi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Web_FInal_Assignment_project/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Web_FInal_Assignment_project/wsgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/wsgi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Web_FInal_Assignment_project/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/Web_FInal_Assignment_project/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Web_FInal_Assignment_project/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/Web_FInal_Assignment_project/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/wsgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/wsgi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manage.py" beforeDir="false" afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,6 +85,7 @@
       <recent name="D:\Softuni\Web_FInal_Assignment_project\templates" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Softuni\Web_FInal_Assignment_project\Web_FInal_Assignment_project" />
       <recent name="D:\Softuni\Web_FInal_Assignment_project\config" />
       <recent name="D:\Softuni\Web_FInal_Assignment_project\config\migrations" />
       <recent name="D:\Softuni\Web_FInal_Assignment_project" />
@@ -130,7 +130,8 @@
       <workItem from="1730839069552" duration="3352000" />
       <workItem from="1730846170028" duration="1604000" />
       <workItem from="1731098156376" duration="765000" />
-      <workItem from="1731440954733" duration="2064000" />
+      <workItem from="1731440954733" duration="5456000" />
+      <workItem from="1731703910973" duration="2084000" />
     </task>
     <task id="LOCAL-00001" summary="Delete Excess Files">
       <option name="closed" value="true" />
@@ -148,7 +149,15 @@
       <option name="project" value="LOCAL" />
       <updated>1730847662816</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Added configuration plus views models and forms">
+      <option name="closed" value="true" />
+      <created>1731447273164</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1731447273164</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -159,6 +168,7 @@
     <MESSAGE value="Initial commit" />
     <MESSAGE value="Merge remote-tracking branch 'origin/master'" />
     <MESSAGE value="Added Templates" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Templates" />
+    <MESSAGE value="Added configuration plus views models and forms" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added configuration plus views models and forms" />
   </component>
 </project>
